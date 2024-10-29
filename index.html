@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Board Game Timer System</title>
+    <style>
+        /* Reset default margin and padding */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        body {
+            background-color: #0b0d0e;
+            color: #ffffff;
+            font-family: 'Roboto', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        h1 {
+            color: #ffffff;
+            font-size: 2.5rem;
+            margin-top: 20px;
+            font-weight: 700;
+            letter-spacing: 2px;
+        }
+
+        .table {
+            border: 1px solid #ffffff;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px;
+            background-color: #121212;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        .table-title {
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: #ffffff;
+            text-align: left;
+            margin-bottom: 50px;
+        }
+
+        .controls {
+            display: flex; /* ใช้ flexbox เพื่อจัดเรียงปุ่มในแนวนอน */
+            justify-content: space-between; /* จัดระยะห่างระหว่างปุ่ม */
+            margin-top: 20px; /* ระยะห่างด้านบน */
+        }
+
+        .controls button {
+            padding: 10px 10px; /* ปรับขนาดปุ่มให้เล็กลง */
+            font-size: 1em; /* ปรับขนาดฟอนต์ */
+            color: #ffffff;
+            background-color: #3a3a3a; /* ปรับสีปุ่มให้เหมือนกัน */
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin: 5px;
+        }
+
+        .controls button:hover {
+            background-color: #575757; /* สีเมื่อเอาเมาส์ชี้ */
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+        }
+
+        .add-button {
+            padding: 10px 15px; /* ปรับขนาดปุ่มให้เล็กลง */
+            font-size: 1em; /* ปรับขนาดฟอนต์ */
+            color: #ffffff;
+            background: linear-gradient(145deg, #434343, #000000);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .add-button:hover {
+            background: linear-gradient(145deg, #575757, #222222);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+        }
+
+        .customer {
+            border-bottom: 1px solid #333;
+            padding: 10px 0;
+            text-align: left;
+        }
+
+        .customer:last-child {
+            border-bottom: none;
+        }
+
+        .customer p {
+            font-size: 1.2em;
+            font-weight: 500;
+        }
+
+        .customer span {
+            color: #aaa;
+        }
+
+        .customer-controls {
+            padding: 10px 15px; /* ปรับขนาด padding ให้เล็กลง */
+            font-size: 1em; /* ปรับขนาดฟอนต์ */
+            color: #ffffff;
+            background-color: #3a3a3a; /* สีปุ่ม */
+            border: none;
+            border-radius: 5px;
+            margin: 5px; /* ระยะห่างระหว่างปุ่ม */
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .customer-controls:hover {
+            background-color: #575757; /* สีเมื่อเอาเมาส์ชี้ */
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Board Game Timer System</h1>
+
+    <div id="tablesContainer"></div>
+
+    <button class="add-button" onclick="addTable()">เพิ่มโต๊ะ</button>
+
+    <script>
+        let tableCount = 0;
+        const tables = {};
+
+        function addTable() {
+            tableCount++;
+            const tableId = `table_${tableCount}`;
+            tables[tableId] = { customers: [] };
+
+            const tableDiv = document.createElement("div");
+            tableDiv.classList.add("table");
+            tableDiv.id = tableId;
+            tableDiv.innerHTML = `
+                <h3 class="table-title">โต๊ะ ${tableCount}</h3>
+                <div id="${tableId}_customers"></div>
+                <div class="controls">
+                    <button onclick="addCustomer('${tableId}')">เพิ่มลูกค้า</button>
+                    <button onclick="startAll('${tableId}')">เริ่มเวลาทุกคน</button>
+                    <button onclick="pauseAll('${tableId}')">หยุดเวลาทุกคน</button>
+                    <button onclick="resetAll('${tableId}')">รีเซ็ตเวลาทุกคน</button>
+                </div>
+            `;
+            document.getElementById("tablesContainer").appendChild(tableDiv);
+        }
+
+        function addCustomer(tableId) {
+            const customerId = tables[tableId].customers.length + 1;
+            const customerDivId = `${tableId}_customer_${customerId}`;
+            const customerData = { startTime: null, elapsedTime: 0, isRunning: false, interval: null };
+
+            tables[tableId].customers.push(customerData);
+
+            const customerDiv = document.createElement("div");
+            customerDiv.id = customerDivId;
+            customerDiv.classList.add("customer");
+            customerDiv.innerHTML = `
+                <p>Q${customerId} <span id="${customerDivId}_display">00:00:00</span></p>
+                <button class="customer-controls" onclick="startCustomer('${tableId}', ${customerId - 1})">เริ่ม</button>
+                <button class="customer-controls" onclick="pauseCustomer('${tableId}', ${customerId - 1})">หยุด</button>
+                <button class="customer-controls" onclick="resetCustomer('${tableId}', ${customerId - 1})">รีเซ็ต</button>
+                <button class="customer-controls" onclick="removeCustomer('${tableId}', ${customerId - 1})">ลบ</button>
+            `;
+            document.getElementById(`${tableId}_customers`).appendChild(customerDiv);
+        }
+
+        function updateDisplay(tableId, customerId) {
+            const customerData = tables[tableId].customers[customerId];
+            const elapsedTime = customerData.isRunning 
+                ? Date.now() - customerData.startTime + customerData.elapsedTime 
+                : customerData.elapsedTime;
+
+            const hours = Math.floor(elapsedTime / 3600000);
+            const minutes = Math.floor((elapsedTime % 3600000) / 60000);
+            const seconds = Math.floor((elapsedTime % 60000) / 1000);
+            document.getElementById(`${tableId}_customer_${customerId + 1}_display`).textContent = 
+                `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
+
+        function startCustomer(tableId, customerId) {
+            const customerData = tables[tableId].customers[customerId];
+            if (!customerData.isRunning) {
+                customerData.startTime = Date.now();
+                customerData.isRunning = true;
+                customerData.interval = setInterval(() => updateDisplay(tableId, customerId), 1000);
+            }
+        }
+
+        function pauseCustomer(tableId, customerId) {
+            const customerData = tables[tableId].customers[customerId];
+            if (customerData.isRunning) {
+                clearInterval(customerData.interval);
+                customerData.elapsedTime += Date.now() - customerData.startTime;
+                customerData.isRunning = false;
+            }
+        }
+
+        function resetCustomer(tableId, customerId) {
+            const customerData = tables[tableId].customers[customerId];
+            if (customerData.isRunning) {
+                clearInterval(customerData.interval);
+                customerData.isRunning = false;
+            }
+            customerData.elapsedTime = 0;
+            updateDisplay(tableId, customerId);
+        }
+
+        function removeCustomer(tableId, customerId) {
+            const customerDiv = document.getElementById(`${tableId}_customer_${customerId + 1}`);
+            customerDiv.parentNode.removeChild(customerDiv);
+            tables[tableId].customers.splice(customerId, 1);
+            updateCustomerIds(tableId);
+        }
+
+        function updateCustomerIds(tableId) {
+            const customerDivs = document.querySelectorAll(`#${tableId}_customers .customer`);
+            customerDivs.forEach((div, index) => {
+                const customerId = index + 1;
+                div.id = `${tableId}_customer_${customerId}`;
+                const display = div.querySelector("span");
+                display.id = `${tableId}_customer_${customerId}_display`;
+                display.textContent = "00:00:00";
+                div.querySelector("p").innerHTML = `Q${customerId} <span id="${tableId}_customer_${customerId}_display">00:00:00</span>`;
+            });
+        }
+
+        function startAll(tableId) {
+            tables[tableId].customers.forEach((customerData, index) => startCustomer(tableId, index));
+        }
+
+        function pauseAll(tableId) {
+            tables[tableId].customers.forEach((customerData, index) => pauseCustomer(tableId, index));
+        }
+
+        function resetAll(tableId) {
+            tables[tableId].customers.forEach((customerData, index) => resetCustomer(tableId, index));
+        }
+    </script>
+</body>
+</html>
